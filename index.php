@@ -39,16 +39,59 @@ try {
 <body>
     <div class="app-container">
         <!-- 地域選択カード -->
-        <div class="card">
-            <form method="GET">
-                <select name="area">
-                    <?php foreach ($areas as $code => $name): ?>
-                        <option value="<?= $code ?>" <?= $selectedArea === $code ? 'selected' : '' ?>><?= $name ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <button type="submit">予報を更新</button>
-            </form>
-        </div>
+<div class="card">
+    <form id="weather-form" method="GET">
+        <select name="area" id="area-select">
+            <?php foreach ($areas as $code => $name): ?>
+                <option value="<?= $code ?>" <?= $selectedArea === $code ? 'selected' : '' ?>><?= $name ?></option>
+            <?php endforeach; ?>
+        </select>
+        <button type="submit">予報を更新</button>
+        <!-- 現在地取得ボタンを追加 -->
+        <button type="button" onclick="getLocation()" style="background: #10b981; margin-top: 10px;">📍 現在地から取得</button>
+    </form>
+</div>
+
+<script>
+function getLocation() {
+    if (!navigator.geolocation) {
+        alert("お使いのブラウザは位置情報に対応していません。");
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition((position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        
+        // 本来はここで緯度経度からエリアコードを逆引きしますが、
+        // 今回は「近接判定」のデモとして、大阪・東京・横浜・福岡のどこに近いか判定します
+        const areaMapping = [
+            { code: '130000', lat: 35.68, lon: 139.76, name: '東京' },
+            { code: '140000', lat: 35.44, lon: 139.63, name: '横浜' },
+            { code: '270000', lat: 34.69, lon: 135.50, name: '大阪' },
+            { code: '400000', lat: 33.59, lon: 130.40, name: '福岡' }
+        ];
+
+        // 最も近い距離のエリアを選択
+        let closest = areaMapping[0];
+        let minDist = Infinity;
+
+        areaMapping.forEach(area => {
+            const dist = Math.sqrt(Math.pow(lat - area.lat, 2) + Math.pow(lon - area.lon, 2));
+            if (dist < minDist) {
+                minDist = dist;
+                closest = area;
+            }
+        });
+
+        alert(`${closest.name}付近にいることを確認しました！`);
+        document.getElementById('area-select').value = closest.code;
+        document.getElementById('weather-form').submit();
+    }, () => {
+        alert("位置情報の取得に失敗しました。");
+    });
+}
+</script>
 
         <?php if ($data): ?>
             <!-- メイン予報カード -->
