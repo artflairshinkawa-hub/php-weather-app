@@ -1,0 +1,9 @@
+services:
+  app:
+    # ここを 8.2 から 8.4 以降に変えます
+    image: php:8.4-apache
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+    working_dir: /var/www/html
