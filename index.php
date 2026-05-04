@@ -4,8 +4,15 @@ use App\Weather;
 
 date_default_timezone_set('Asia/Tokyo');
 $selectedArea = $_GET['area'] ?? '270000';
-$areas = ['130000' => '東京', '140000' => '横浜', '270000' => '大阪', '400000' => '福岡'];
-
+$areas = [
+    '130000' => '東京',
+    '140000' => '横浜',
+    '270000' => '大阪',
+    '290000' => '奈良',     // 追加
+    '460100' => '鹿児島',   // 追加
+    '400000' => '福岡',
+    '016000' => '札幌'
+];
 $weather = new Weather();
 $data = null;
 
@@ -72,12 +79,14 @@ function getLocation() {
         
         // 本来はここで緯度経度からエリアコードを逆引きしますが、
         // 今回は「近接判定」のデモとして、大阪・東京・横浜・福岡のどこに近いか判定します
-        const areaMapping = [
-            { code: '130000', lat: 35.68, lon: 139.76, name: '東京' },
-            { code: '140000', lat: 35.44, lon: 139.63, name: '横浜' },
-            { code: '270000', lat: 34.69, lon: 135.50, name: '大阪' },
-            { code: '400000', lat: 33.59, lon: 130.40, name: '福岡' }
-        ];
+       const areaMapping = [
+    { code: '130000', lat: 35.68, lon: 139.76, name: '東京' },
+    { code: '140000', lat: 35.44, lon: 139.63, name: '横浜' },
+    { code: '270000', lat: 34.69, lon: 135.50, name: '大阪' },
+    { code: '290000', lat: 34.68, lon: 135.83, name: '奈良' },     // 追加
+    { code: '460100', lat: 31.56, lon: 130.55, name: '鹿児島' },   // 追加
+    { code: '400000', lat: 33.59, lon: 130.40, name: '福岡' }
+];
 
         // 最も近い距離のエリアを選択
         let closest = areaMapping[0];
