@@ -7,5 +7,10 @@
     "require": {
         "nesbot/carbon": "^3.11",
         "guzzlehttp/guzzle": "^7.10"
+    },
+    "config": {
+        "platform": {
+            "php": "8.2"
+        }
     }
 }
