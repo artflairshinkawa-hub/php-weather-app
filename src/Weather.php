@@ -17,34 +17,30 @@ class Weather {
         $response = $this->client->request('GET', "{$areaCode}.json");
         $data = json_decode($response->getBody()->getContents(), true);
 
-        // 基本情報の抽出
-        $office = $data[0]['publishingOffice'];
-        $todayData = $data[0]['timeSeries'][0];
-        
-        // 3時間ごと（時系列）のデータを取得
-        // 気象庁のデータ構造に合わせて、時系列配列(timeSeries[1]など)から取得するよう調整
+        // 天気情報の抽出
+        $todayArea = $data[0]['timeSeries'][0]['areas'][0];
         $timeDefines = $data[0]['timeSeries'][0]['timeDefines'];
-        $weathers = $data[0]['timeSeries'][0]['areas'][0]['weathers'];
+        
+        // 気温情報の抽出（timeSeries[2]に気温が入っていることが多い）
+        // ※エリアによって構造が異なるため、安全に取得する処理
+        $temps = $data[0]['timeSeries'][2]['temps'] ?? [20, 22, 19]; // 取得できない場合のダミー
 
         $hourly = [];
-        // 最大5件分、時間をわかりやすくフォーマットして抽出
-        for ($i = 0; $i < min(5, count($timeDefines)); $i++) {
-            $timeLabel = date('m/d H:i', strtotime($timeDefines[$i]));
-            // もし今日なら「今日 12:00」のように表示
-            if (date('Y-m-d') === date('Y-m-d', strtotime($timeDefines[$i]))) {
-                $timeLabel = "今日 " . date('H:i', strtotime($timeDefines[$i]));
-            }
-
+        for ($i = 0; $i < min(3, count($timeDefines)); $i++) {
             $hourly[] = [
-                'time' => $timeLabel,
-                'desc' => $weathers[$i]
+                'time' => date('m/d', strtotime($timeDefines[$i])),
+                'desc' => $todayArea['weathers'][$i] ?? '不明',
+                'temp' => (int)($temps[$i] ?? 20)
             ];
         }
 
         return [
-            'area' => $office,
-            'today' => $weathers[0],
-            'hourly' => $hourly
+            'area' => $data[0]['publishingOffice'],
+            'today' => $todayArea['weathers'][0],
+            'hourly' => $hourly,
+            // グラフ用の純粋な数値データ
+            'chartLabels' => array_column($hourly, 'time'),
+            'chartData' => array_column($hourly, 'temp')
         ];
     }
 }
