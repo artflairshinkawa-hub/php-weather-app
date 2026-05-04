@@ -7,7 +7,6 @@ class Weather {
     private $client;
 
     public function __construct() {
-        // Guzzleのクライアント（通信するための道具）を準備
         $this->client = new Client([
             'base_uri' => 'https://www.jma.go.jp/bosai/forecast/data/forecast/',
             'timeout'  => 5.0,
@@ -15,16 +14,29 @@ class Weather {
     }
 
     public function getForecast($areaCode) {
-        // 気象庁のAPIを叩く（例：東京は 130000）
         $response = $this->client->request('GET', "{$areaCode}.json");
-        
-        // 届いたデータ（JSON形式）をPHPの配列に変換
         $data = json_decode($response->getBody()->getContents(), true);
 
-        // 必要な情報（エリア名と天気）だけを抜き出して返す
+        // 今日の概況
+        $office = $data[0]['publishingOffice'];
+        $todayArea = $data[0]['timeSeries'][0]['areas'][0];
+        
+        // 3時間ごとの詳細データ（時系列）
+        $timeSeries = $data[0]['timeSeries'][0]['timeDefines'];
+        $weathers = $data[0]['timeSeries'][0]['areas'][0]['weathers'];
+
+        $hourly = [];
+        for ($i = 0; $i < min(5, count($timeSeries)); $i++) {
+            $hourly[] = [
+                'time' => date('H:i', strtotime($timeSeries[$i])),
+                'desc' => $weathers[$i] ?? $todayArea['weathers'][0]
+            ];
+        }
+
         return [
-            'area' => $data[0]['publishingOffice'],
-            'forecast' => $data[0]['timeSeries'][0]['areas'][0]['weathers'][0]
+            'area' => $office,
+            'today' => $todayArea['weathers'][0],
+            'hourly' => $hourly
         ];
     }
 }
